@@ -1,15 +1,19 @@
 {
   "manifest_version": 3,
   "name": "Wowsims Translate RU",
-  "version": "1.0",
-  "description": "Заменяет wowhead tooltips на русскую версию ru.wowhead.com для wowsims.com",
-  "permissions": ["activeTab"],
-  "host_permissions": ["https://www.wowsims.com/*"],
+  "version": "1.0.4",
+  "description": "Перевод тултипов wowhead на русский для WoWSims",
   "content_scripts": [
     {
       "matches": ["https://www.wowsims.com/*"],
       "js": ["content.js"],
       "run_at": "document_end"
     }
-  ]
+  ],
+  "permissions": [],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

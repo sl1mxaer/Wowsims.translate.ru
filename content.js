@@ -1,55 +1,72 @@
-// Wowsims Translate RU - основной content script
+// Wowsims RU Tooltip Fix - v5 (Advanced Russian tooltips force)
+console.log('%c[Wowsims RU] Content script loaded v5 - Advanced Russian tooltips', 'color: #00ff00; font-weight: bold');
 
-console.log('🚀 Wowsims Translate RU загружен');
-
-// Основная функция замены wowhead ссылок и tooltips
 function replaceWowheadLinks() {
-  // Заменяем все ссылки wowhead.com на ru.wowhead.com
-  const links = document.querySelectorAll('a[href*="wowhead.com"]');
-  links.forEach(link => {
-    if (link.href.includes('wowhead.com') && !link.href.includes('ru.wowhead.com')) {
-      let newHref = link.href.replace('www.wowhead.com', 'www.wowhead.com/ru');
-      // Для MOP Classic
-      newHref = newHref.replace('/mop-classic/item=', '/mop-classic/ru/item=');
-      newHref = newHref.replace('/mop-classic/spell=', '/mop-classic/ru/spell=');
-      link.href = newHref;
-      console.log('🔗 Заменена ссылка:', link.href);
-    }
-  });
+  const selectors = [
+    'a[href*="wowhead.com"]',
+    '[data-wowhead]',
+    '[data-tooltip-href]',
+    '.item', '.gem', '.enchant', '[class*="item"]', '[class*="gear"]',
+    '[data-wowhead*="item"]', '[data-wowhead*="spell"]'
+  ];
 
-  // Для data-wowhead атрибутов
-  const elements = document.querySelectorAll('[data-wowhead]');
-  elements.forEach(el => {
-    const data = el.getAttribute('data-wowhead');
-    if (data && data.includes('item=')) {
-      // Можно модифицировать data-wowhead если нужно
-      console.log('📋 Найден data-wowhead:', data);
+  document.querySelectorAll(selectors.join(', ')).forEach(el => {
+    let attr = 'data-wowhead';
+    let value = el.getAttribute(attr) || el.getAttribute('href') || el.getAttribute('data-tooltip-href');
+    if (!value || !value.includes('wowhead.com')) return;
+
+    let newValue = value;
+
+    // Force Russian tooltips - Best method
+    if (newValue.includes('wowhead.com')) {
+      // Add domain=ru parameter
+      if (newValue.includes('?')) {
+        if (!newValue.includes('domain=')) {
+          newValue += '&domain=ru';
+        } else {
+          newValue = newValue.replace(/domain=[^&]*/, 'domain=ru');
+        }
+      } else {
+        newValue += '?domain=ru';
+      }
+
+      // Force /ru/ in path
+      if (newValue.includes('/mop-classic/') && !newValue.includes('/mop-classic/ru/')) {
+        newValue = newValue.replace('/mop-classic/', '/mop-classic/ru/');
+      }
+
+      // Spell/enchant support
+      if (newValue.includes('/spell=') && !newValue.includes('/ru/spell=')) {
+        newValue = newValue.replace('/spell=', '/ru/spell=');
+      }
+    }
+
+    // Update all possible attributes
+    if (el.getAttribute('data-wowhead')) el.setAttribute('data-wowhead', newValue);
+    if (el.getAttribute('href')) el.setAttribute('href', newValue);
+    if (el.getAttribute('data-tooltip-href')) el.setAttribute('data-tooltip-href', newValue);
+
+    if (value !== newValue) {
+      console.log('[Wowsims RU] Replaced link:', value, '→', newValue);
     }
   });
 }
 
-// Наблюдатель за изменениями DOM (wowsims динамически подгружает контент)
+// Run multiple times for dynamic content
+function init() {
+  replaceWowheadLinks();
+  setTimeout(replaceWowheadLinks, 500);
+  setTimeout(replaceWowheadLinks, 1500);
+  setTimeout(replaceWowheadLinks, 4000);
+}
+
+window.addEventListener('load', init);
+
+// Strong MutationObserver
 const observer = new MutationObserver(() => {
   replaceWowheadLinks();
 });
 
-// Запуск
-function init() {
-  replaceWowheadLinks();
-  observer.observe(document.body, { childList: true, subtree: true });
+observer.observe(document.body, { childList: true, subtree: true });
 
-  // Перехват создания tooltips Wowhead
-  const originalCreateTooltip = window.whTooltips;
-  if (originalCreateTooltip) {
-    console.log('🔧 Wowhead tooltips обнаружены');
-  }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
-
-// Периодический запуск на случай динамических обновлений
-setInterval(replaceWowheadLinks, 2000);
+console.log('%c[Wowsims RU] v5 observer active', 'color: #00ff00');
