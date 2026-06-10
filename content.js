@@ -1,39 +1,47 @@
-// Wowsims.translate.ru - v7 (исправлено для MOP Classic)
-console.log('[Wowsims RU] v7 загружен - MOP Classic fix');
+// Wowsims.translate.ru - v8 (MOP Classic fix)
+console.log('[Wowsims RU] v8 загружен - MOP Classic + anti-duplicate');
 
 function fixWowheadTooltips() {
-    // 1. data-wowhead: добавляем domain=ru
+    // 1. data-wowhead — добавляем domain=ru один раз
     document.querySelectorAll('[data-wowhead]').forEach(el => {
         let val = el.getAttribute('data-wowhead') || '';
         if (val && !val.includes('domain=ru')) {
+            val = val.replace(/&?domain=[^&]*/g, '');
             const sep = val.includes('?') ? '&' : '?';
-            val = val.replace(/&?domain=[^&]*/g, '') + sep + 'domain=ru';
-            el.setAttribute('data-wowhead', val);
+            el.setAttribute('data-wowhead', val + sep + 'domain=ru');
         }
     });
 
-    // 2. Исправляем ссылки (сохраняем /mop-classic/ + /ru/)
+    // 2. Исправляем ссылки — БЕЗ дублирования /ru/
     document.querySelectorAll('a[href*="wowhead.com"]').forEach(link => {
         let href = link.getAttribute('href');
         if (!href || href.includes('ru.wowhead.com')) return;
 
+        // Убираем лишние /ru/ если уже есть
+        href = href.replace(/\/ru(\/ru)+/g, '/ru');
+
         // Правильная замена для mop-classic
-        href = href.replace(
-            /(https?:\/\/)(www\.)?wowhead\.com\/(mop-classic\/)?/,
-            '$1$2wowhead.com/mop-classic/ru/'
-        );
+        if (href.includes('wowhead.com/mop-classic')) {
+            href = href.replace(
+                /(https?:\/\/)(www\.)?wowhead\.com\/(mop-classic\/)?/,
+                '$1$2wowhead.com/mop-classic/ru/'
+            );
+        } else {
+            // Для spell/item без mop-classic
+            href = href.replace(
+                /(https?:\/\/)(www\.)?wowhead\.com\//,
+                '$1$2wowhead.com/ru/'
+            );
+        }
+
         link.setAttribute('href', href);
     });
 }
 
-// Первый запуск
+// Первый запуск + частые обновления для Wowsims
 fixWowheadTooltips();
-
-// Мониторинг динамики
 const observer = new MutationObserver(fixWowheadTooltips);
 observer.observe(document.body, { childList: true, subtree: true });
+setInterval(fixWowheadTooltips, 700);
 
-// Дополнительные запуски
-setInterval(fixWowheadTooltips, 1000);
-
-console.log('[Wowsims RU] v7 Observer запущен');
+console.log('[Wowsims RU] v8 Observer активен');
