@@ -1,72 +1,40 @@
-// Wowsims RU Tooltip Fix - v5 (Advanced Russian tooltips force)
-console.log('%c[Wowsims RU] Content script loaded v5 - Advanced Russian tooltips', 'color: #00ff00; font-weight: bold');
+// Wowsims.translate.ru - v6
+console.log('[Wowsims RU] Расширение загружено v6');
 
 function replaceWowheadLinks() {
-  const selectors = [
-    'a[href*="wowhead.com"]',
-    '[data-wowhead]',
-    '[data-tooltip-href]',
-    '.item', '.gem', '.enchant', '[class*="item"]', '[class*="gear"]',
-    '[data-wowhead*="item"]', '[data-wowhead*="spell"]'
-  ];
-
-  document.querySelectorAll(selectors.join(', ')).forEach(el => {
-    let attr = 'data-wowhead';
-    let value = el.getAttribute(attr) || el.getAttribute('href') || el.getAttribute('data-tooltip-href');
-    if (!value || !value.includes('wowhead.com')) return;
-
-    let newValue = value;
-
-    // Force Russian tooltips - Best method
-    if (newValue.includes('wowhead.com')) {
-      // Add domain=ru parameter
-      if (newValue.includes('?')) {
-        if (!newValue.includes('domain=')) {
-          newValue += '&domain=ru';
-        } else {
-          newValue = newValue.replace(/domain=[^&]*/, 'domain=ru');
+    // Замена data-wowhead атрибутов
+    document.querySelectorAll('[data-wowhead]').forEach(el => {
+        let val = el.getAttribute('data-wowhead');
+        if (val && !val.includes('domain=ru')) {
+            val = val.replace(/&?domain=\w+/, '') + (val.includes('?') ? '&' : '?') + 'domain=ru';
+            el.setAttribute('data-wowhead', val);
         }
-      } else {
-        newValue += '?domain=ru';
-      }
+    });
 
-      // Force /ru/ in path
-      if (newValue.includes('/mop-classic/') && !newValue.includes('/mop-classic/ru/')) {
-        newValue = newValue.replace('/mop-classic/', '/mop-classic/ru/');
-      }
-
-      // Spell/enchant support
-      if (newValue.includes('/spell=') && !newValue.includes('/ru/spell=')) {
-        newValue = newValue.replace('/spell=', '/ru/spell=');
-      }
-    }
-
-    // Update all possible attributes
-    if (el.getAttribute('data-wowhead')) el.setAttribute('data-wowhead', newValue);
-    if (el.getAttribute('href')) el.setAttribute('href', newValue);
-    if (el.getAttribute('data-tooltip-href')) el.setAttribute('data-tooltip-href', newValue);
-
-    if (value !== newValue) {
-      console.log('[Wowsims RU] Replaced link:', value, '→', newValue);
-    }
-  });
+    // Замена обычных ссылок wowhead.com → ru.wowhead.com
+    document.querySelectorAll('a[href*="wowhead.com"]').forEach(link => {
+        let href = link.getAttribute('href');
+        if (href && href.includes('wowhead.com') && !href.includes('ru.wowhead.com')) {
+            let newHref = href.replace(
+                /(https?:\/\/)(www\.)?wowhead\.com\/(mop-classic\/)?/,
+                '$1$2wowhead.com/mop-classic/ru/'
+            );
+            link.setAttribute('href', newHref);
+        }
+    });
 }
 
-// Run multiple times for dynamic content
-function init() {
-  replaceWowheadLinks();
-  setTimeout(replaceWowheadLinks, 500);
-  setTimeout(replaceWowheadLinks, 1500);
-  setTimeout(replaceWowheadLinks, 4000);
-}
+// Запуск при загрузке
+replaceWowheadLinks();
 
-window.addEventListener('load', init);
-
-// Strong MutationObserver
+// Мониторинг динамического контента
 const observer = new MutationObserver(() => {
-  replaceWowheadLinks();
+    replaceWowheadLinks();
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
 
-console.log('%c[Wowsims RU] v5 observer active', 'color: #00ff00');
+// Дополнительный запуск
+setInterval(replaceWowheadLinks, 800);
+
+console.log('[Wowsims RU] Observer и замены активированы');
