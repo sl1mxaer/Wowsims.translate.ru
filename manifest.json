@@ -1,16 +1,21 @@
 {
   "manifest_version": 3,
   "name": "Wowsims.translate.ru",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Перевод тултипов Wowhead на русский (MOP Classic) для wowsims.com",
-  "icons": {
-    "128": "wowsims.png"
-  },
+  "icons": { "128": "wowsims.png" },
   "content_scripts": [
     {
       "matches": ["https://www.wowsims.com/*"],
       "js": ["content.js"],
-      "run_at": "document_end"
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.js"],
+      "matches": ["https://www.wowsims.com/*"]
     }
   ],
   "permissions": ["activeTab"],
