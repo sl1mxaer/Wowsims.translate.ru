@@ -1,50 +1,47 @@
-// Wowsims.translate.ru - v9 (MOP Classic + ru)
-console.log('[Wowsims RU] v9 загружен - Force MOP Classic');
+console.log('[Wowsims RU] content.js загружен (ISOLATED world)');
 
-function fixWowheadTooltips() {
-    // 1. data-wowhead — force mop-classic + ru
+// Внедряем inject.js в MAIN world вручную (Яндекс не поддерживает world:MAIN)
+(function injectScript() {
+    try {
+        const s = document.createElement('script');
+        s.src = chrome.runtime.getURL('inject.js');
+        s.onload = function () { this.remove(); };
+        (document.head || document.documentElement).appendChild(s);
+        console.log('[Wowsims RU] inject.js внедрён в страницу');
+    } catch (e) {
+        console.warn('[Wowsims RU] Не удалось внедрить inject.js', e);
+    }
+})();
+
+// Правим data-wowhead в DOM (для тех тултипов, что рендерятся из атрибутов)
+const LOCALE = '7';
+
+function setParam(str, name, value) {
+    const re = new RegExp('(^|&)' + name + '=[^&]*', 'i');
+    if (re.test(str)) return str.replace(re, '$1' + name + '=' + value);
+    return str + '&' + name + '=' + value;
+}
+
+function fixVal(val) {
+    if (!val) return val;
+    // data-wowhead имеет вид "item=102246&ilvl=608&..." (разделитель &, без ?)
+    val = setParam(val, 'locale', LOCALE);
+    return val.replace(/&{2,}/g, '&').replace(/^&|&$/g, '');
+}
+
+function forceRu() {
     document.querySelectorAll('[data-wowhead]').forEach(el => {
-        let val = el.getAttribute('data-wowhead') || '';
-        if (val) {
-            // Убираем старые domain
-            val = val.replace(/&?domain=[^&]*/g, '');
-            
-            // Force MOP Classic Russian
-            const sep = val.includes('?') ? '&' : '?';
-            val = val + sep + 'domain=mop-classic&domain=ru';
-            
-            el.setAttribute('data-wowhead', val);
-        }
-    });
-
-    // 2. Исправляем ссылки (mop-classic/ru/)
-    document.querySelectorAll('a[href*="wowhead.com"]').forEach(link => {
-        let href = link.getAttribute('href');
-        if (!href || href.includes('ru.wowhead.com')) return;
-
-        href = href.replace(/\/ru(\/ru)+/g, '/ru');
-
-        if (href.includes('/mop-classic/')) {
-            href = href.replace(
-                /(https?:\/\/)(www\.)?wowhead\.com\/mop-classic\/?/,
-                '$1$2wowhead.com/mop-classic/ru/'
-            );
-        } else {
-            href = href.replace(
-                /(https?:\/\/)(www\.)?wowhead\.com\//,
-                '$1$2wowhead.com/mop-classic/ru/'
-            );
-        }
-
-        href = href.replace(/\/ru(\/ru)+/g, '/ru');
-        link.setAttribute('href', href);
+        const val = el.getAttribute('data-wowhead') || '';
+        const fixed = fixVal(val);
+        if (val && fixed !== val) el.setAttribute('data-wowhead', fixed);
     });
 }
 
-// Запуски
-fixWowheadTooltips();
-const observer = new MutationObserver(fixWowheadTooltips);
-observer.observe(document.body, { childList: true, subtree: true });
-setInterval(fixWowheadTooltips, 700);
+function init() {
+    forceRu();
+    const observer = new MutationObserver(forceRu);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+}
 
-console.log('[Wowsims RU] v9 MOP Classic + ru Observer активен');
+if (document.body) init();
+else document.addEventListener('DOMContentLoaded', init);
