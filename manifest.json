@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Wowsims.translate.ru",
   "version": "1.0.9",
-  "description": "Перевод тултипов Wowhead на русский (MOP Classic) для wowsims.com",
+  "description": "Перевод тултипов Wowhead с английского на русский для wowsims.com",
   "icons": { "128": "icon.png" },
   "content_scripts": [
     {
