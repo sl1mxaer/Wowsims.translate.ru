@@ -22,6 +22,16 @@
 - Автоматически заменяет тултипы Wowhead на русские (item, spell, enchant и т.д.).
 - Поддерживает динамическое обновление страницы.
 
+## Пример работы
+### Экипировка / Equipment
+![Equipment](screenshots/Equipment.png)
+
+### Гемы / Gems
+![Gems](screenshots/Gems.png)
+
+### Чанты / Enchants
+![Enchants](screenshots/Enchants.png)
+
 ---
 
 **Версия:** 1.0.0
