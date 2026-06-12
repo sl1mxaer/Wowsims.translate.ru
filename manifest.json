@@ -3,7 +3,11 @@
   "name": "Wowsims.translate.ru",
   "version": "1.0.9",
   "description": "Перевод тултипов Wowhead с английского на русский для wowsims.com",
-  "icons": { "128": "icon.png" },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "content_scripts": [
     {
       "matches": ["https://www.wowsims.com/*"],
